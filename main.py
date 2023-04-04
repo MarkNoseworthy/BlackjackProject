@@ -9,7 +9,7 @@ def cardDeck():
     for suit in cardSuits:
         for rank in cardRanks:
             deck.append([rank, suit])
-    random.shuffle(deck)
+        random.shuffle(deck)
     return deck
 
 def deal(deck):
@@ -27,21 +27,14 @@ def hit(hand, deck):
 def score(hand):
     total = 0
     cardValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
     for card in hand:
         if card == "10" or card == "Jack" or card == "Queen" or card == "King":
             total += cardValues[9]
         elif card == "Ace":
             if total >= 11:
-                total += 1
+                total += cardValues[0]
             else:
-                choice = int(input("Choose 1 or 11: "))
-                if choice == 1:
-                    total += cardValues[0]
-                elif choice == 11:
-                    total += cardValues[10]
-                else:
-                    print("Must choose 1 or 11.")
+                total += cardValues[10]
         elif card == "2":
             total += cardValues[1]
         elif card == "3":
@@ -59,7 +52,6 @@ def score(hand):
         elif card == "9":
             total += cardValues[8]
     return total
-
 
 def main():
     print("BLACKJACK")
@@ -99,6 +91,20 @@ def main():
                 print()
                 print("YOUR CARDS:")
                 print(f"{playerHand[0][0]} of {playerHand[0][1]}\n{playerHand[1][0]} of {playerHand[1][1]}")
+                print()
+                while True:
+                    stand = input("Hit or stand? (hit/stand): ")
+                    print()
+                    if stand == "hit":
+                        hit(playerHand, deck)
+                        print("YOUR CARDS:")
+                        print(f"{playerHand[0][0]} of {playerHand[0][1]}\n{playerHand[1][0]} of {playerHand[1][1]}"
+                              f"\n{playerHand[2][0]} of {playerHand[2][1]}")
+                        print()
+                    else:
+                        break
+                print("DEALER'S CARDS:")
+                print(f"{dealerHand[0][0]} of {dealerHand[0][1]}\n{dealerHand[1][0]} or {dealerHand[1][1]}")
                 print()
                 print(f"YOUR POINTS: {playerScore}")
                 print(f"DEALER'S POINTS: {dealerScore}")
