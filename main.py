@@ -11,28 +11,33 @@ def cardDeck():
         for rank in cardRanks:
             deck.append([rank, suit])
         random.shuffle(deck)
-    print(deck)
     return deck
 
 deck = cardDeck()
 def deal():
     hand = []
     for i in range(2):
-        card = deck.pop()
+        card = deck.pop(0)
         hand.append(card)
     return hand
 
+def dealerDeal():
+    dealerHand = []
+    card = deck.pop(0)
+    dealerHand.append(card)
+    return dealerHand
 
 def playerCards(hand):
     for card in hand:
         print(f"{card[0]} of {card[1]}")
 
-def dealerCards(hand):
-    for card in hand:
+
+def dealerCards(dealerHand):
+    for card in dealerHand:
         print(f"{card[0]} of {card[1]}")
 
 def hit(hand):
-    card = deck.pop()
+    card = deck.pop(0)
     hand.append(card)
 
 def score(hand):
@@ -42,15 +47,6 @@ def score(hand):
         for i in card:
             if i == "10" or i == "Jack" or i == "Queen" or i == "King":
                 total += cardValues[9]
-            elif i == "Ace":
-                while total < 11:
-                    choose = input("Choose 1 or 11: ")
-                    if choose == 1:
-                        total += cardValues[0]
-                    else:
-                        total += cardValues[10]
-                else:
-                    total += cardValues[0]
             elif i == "2":
                 total += cardValues[1]
             elif i == "3":
@@ -67,38 +63,30 @@ def score(hand):
                 total += cardValues[7]
             elif i == "9":
                 total += cardValues[8]
+            elif i == "Ace":
+                if total >= 11:
+                    total += cardValues[0]
+                else:
+                    total += cardValues[10]
     return total
 
-def hasBlackJack(playerHand, dealerHand):
-    if score(playerHand) == 21:
-        print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
-        print()
-        print("Blackjack! You win!")
-        print()
 
 def results(playerHand, dealerHand):
-    if score(dealerHand) > 21:
-        print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
-        print()
-        print("Dealer busted.")
-        print()
-    if score(playerHand) > 21:
-        print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
-        print()
-        print("You busted.")
-        print()
-    elif score(playerHand) > score(dealerHand) and score(playerHand) <= 21:
+    money = db.readWallet()
+    if score(playerHand) > score(dealerHand) and score(playerHand) <= 21:
         if score(playerHand) == 21:
             print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
             print()
             print("Blackjack! You win!")
             print()
+            amount = float(money) + 20
+            db.writeWallet(amount)
         else:
             print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
             print()
             print("Congratulations, you win!")
             print()
-    elif score(dealerHand) > score(playerHand) and score(dealerHand) <= 21:
+    if score(playerHand) < score(dealerHand) <= 21:
         if score(dealerHand) == 21:
             print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
             print()
@@ -109,22 +97,25 @@ def results(playerHand, dealerHand):
             print()
             print("Sorry. You lose.")
             print()
+    elif score(playerHand) > 21:
+        print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
+        print()
+        print("You busted.")
+        print()
+    elif score(dealerHand) > 21:
+        print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
+        print()
+        print("Dealer busted.")
+        print()
     elif score(dealerHand) == score(playerHand):
         print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
         print()
         print("Tied. Bet amount returned.")
         print()
 
-
 def bet():
     money = db.readWallet()
-    if money < "5":
-        print("Money:", money)
-        buyChips = input("\nWould you like to buy 50 worth of chips? (y/n): ")
-        if buyChips == "y":
-            amount = float(money) + 50
-            db.writeWallet(amount)
-    else:
+    if float(money) >= 5:
         print("Money:", money)
         amount = float(input("Bet amount: "))
         if amount < 5 or amount > 1000:
@@ -133,6 +124,13 @@ def bet():
         elif float(amount) > float(money):
             print("Insufficient funds, try again.")
             print()
+    else:
+        print("Money:", money)
+        buyChips = input("\nWould you like to buy 50 worth of chips? (y/n): ")
+        if buyChips == "y":
+            amount = float(money) + 50
+            db.writeWallet(amount)
+    # return betAmount
 
 
 def main():
@@ -143,10 +141,11 @@ def main():
 
     playAgain = "y"
     while playAgain == "y":
-        money = db.readWallet()
-        amount = bet()
+        print(deck)
+        # db.readWallet()
+        bet()
         playerHand = deal()
-        dealerHand = deal()
+        dealerHand = dealerDeal()
 
         print()
         print("DEALER'S SHOW CARD:")
@@ -157,7 +156,6 @@ def main():
         print("YOUR CARDS:")
         playerCards(playerHand)
         score(playerHand)
-        hasBlackJack(playerHand, dealerHand)
         print(score(playerHand))
         print()
         while score(playerHand) < 21 and score(playerHand) != 21:
@@ -172,14 +170,14 @@ def main():
                 print()
             else:
                 break
-        while score(dealerHand) <= score(playerHand) or score(dealerHand) < 17:
+        while score(dealerHand) <= score(playerHand) < 21 or score(dealerHand) < 17:
             hit(dealerHand)
-            print("DEALER'S CARDS:")
-            dealerCards(dealerHand)
-            print()
-            score(playerHand)
-            score(dealerHand)
+        print("DEALER'S CARDS:")
+        dealerCards(dealerHand)
+        print()
+        score(dealerHand)
         results(playerHand, dealerHand)
+        print(deck)
         playAgain = input("Play again? (y/n): ")
         print()
 
