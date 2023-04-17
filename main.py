@@ -93,7 +93,7 @@ def results(playerHand, dealerHand, bet):
             amount = float(money) + bet * 1.5
             db.writeWallet(round(amount, 2))
 
-    if score(playerHand) < score(dealerHand) <= 21:
+    elif score(playerHand) < score(dealerHand) <= 21:
         if score(dealerHand) == 21:
             print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
             print()
@@ -106,7 +106,7 @@ def results(playerHand, dealerHand, bet):
             print("Sorry. You lose.")
             print()
 
-    if score(playerHand) > 21:
+    elif score(playerHand) > 21:
         print(f"YOUR POINTS: {score(playerHand)}\nDEALER'S POINTS: {score(dealerHand)}")
         print()
         print("You busted.")
@@ -132,86 +132,86 @@ def results(playerHand, dealerHand, bet):
 def main():
     print("BLACKJACK")
     print("Blackjack payout is 3:2")
-    print()
+    deck = cardDeck()
 
     playAgain = "y"
     while playAgain == "y":
 
-        deck = cardDeck()
-        money = db.readWallet()
+        roundCounter = 0
+        while roundCounter < 8:
 
-        if float(money) < 5:
-            print("Money:", money)
-            buyChips = input("\nWould you like to buy 50 worth of chips? (y/n): ")
+            money = db.readWallet()
+            if float(money) < 5:
+                print("Money:", money)
+                buyChips = input("\nWould you like to buy 50 worth of chips? (y/n): ")
+                if buyChips.lower() == "y":
+                    amount = float(money) + 50
+                    db.writeWallet(amount)
+                else:
+                    print()
+                    break
 
-            if buyChips == "y":
-                amount = float(money) + 50
-                db.writeWallet(amount)
-        money = db.readWallet()
-        print()
-
-        while float(money) >= 5:
-            print("Money:", money)
-            bet = float(input("Bet amount: "))
-
-            if bet < 5 or bet > 1000:
-                print("Bet must be between 5 and 1000, try again.")
-                print()
-
-            elif float(bet) > float(money):
-                print("Insufficient funds, try again.")
-                print()
-
-            else:
-                amount = float(money) - bet
-                db.writeWallet(round(amount, 2))
-                break
-
-        if float(money) < 5:
-            print("Money:", money)
-            buyChips = input("\nWould you like to buy 50 worth of chips? (y/n): ")
-
-            if buyChips == "y":
-                amount = float(money) + 50
-                db.writeWallet(amount)
-
-        playerHand = deal(deck)
-        dealerHand = dealerDeal(deck)
-
-        print()
-        print("DEALER'S SHOW CARD:")
-        dealerCards(dealerHand)
-        score(dealerHand)
-        print()
-
-        print("YOUR CARDS:")
-        playerCards(playerHand)
-        score(playerHand)
-        print()
-
-        while score(playerHand) < 21 and score(playerHand) != 21:
-            stand = input("Hit or stand? (hit/stand): ")
+            money = db.readWallet()
             print()
 
-            if stand == "hit":
-                hit(playerHand, deck)
-                print(f"YOUR CARDS: ")
-                playerCards(playerHand)
-                score(playerHand)
-                print()
+            while float(money) >= 5:
+                print("Money:", money)
+                try:
+                    bet = float(input("Bet amount: "))
 
-            else:
-                break
+                    if bet < 5 or bet > 1000:
+                        print("Bet must be between 5 and 1000, try again.")
+                        print()
 
-        while score(dealerHand) <= score(playerHand) < 21 and score(playerHand) != 21 or score(dealerHand) < 17:
-            hit(dealerHand, deck)
+                    elif float(bet) > float(money):
+                        print("Insufficient funds, try again.")
+                        print()
+                    else:
+                        amount = float(money) - bet
+                        db.writeWallet(round(amount, 2))
+                        break
+                except ValueError:
+                    print()
+                    print("Invalid bet. Must be a float/integer.")
+                    print()
 
-            print("DEALER'S CARDS:")
+            playerHand = deal(deck)
+            dealerHand = dealerDeal(deck)
+
+            print()
+            print("DEALER'S SHOW CARD:")
             dealerCards(dealerHand)
-            print()
             score(dealerHand)
-        results(playerHand, dealerHand, bet)
+            print()
 
+            print("YOUR CARDS:")
+            playerCards(playerHand)
+            score(playerHand)
+            print()
+
+            while score(playerHand) < 21 and score(playerHand) != 21:
+                stand = input("Hit or stand? (hit/stand): ")
+                print()
+
+                if stand == "hit":
+                    hit(playerHand, deck)
+                    print(f"YOUR CARDS: ")
+                    playerCards(playerHand)
+                    score(playerHand)
+                    print()
+                else:
+                    break
+
+            while score(dealerHand) <= score(playerHand) < 21 and score(playerHand) != 21 or score(dealerHand) < 17:
+                hit(dealerHand, deck)
+
+                print("DEALER'S CARDS:")
+                dealerCards(dealerHand)
+                print()
+                score(dealerHand)
+            results(playerHand, dealerHand, bet)
+            roundCounter += 1
+        deck = cardDeck()
         playAgain = input("Play again? (y/n): ")
         print()
 
