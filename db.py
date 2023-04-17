@@ -1,6 +1,5 @@
 import sys
 
-
 def writeWallet(amount):
     with open("money.txt", "w") as file:
         file.write(f"{amount}")
